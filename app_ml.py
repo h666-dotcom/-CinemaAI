@@ -160,7 +160,7 @@ else:
     st.sidebar.caption("No recent titles tracked yet.")
 
 # =====================================================================
-# 6. MOVIE EXPLORER PORTAL (WITH FUZZY MATCHING FALLBACK)
+# 6. MOVIE EXPLORER PORTAL (WITH CLEAN BACKGROUND FUZZY MATCHING)
 # =====================================================================
 st.markdown("### 🔍 Discover Movie Profiles")
 search_query = st.text_input("Search titles:", placeholder="Type a movie title here...")
@@ -170,13 +170,12 @@ if search_query:
     query_words = [w.lower() for w in re.findall(r'\b\w+\b', search_query)]
     matched_results = df[df['title'].apply(lambda x: all(word in str(x).lower() for word in query_words))]
     
-    # Fuzzy Matching Fallback: If no direct hits found, let difflib correct typos dynamically
+    # Fuzzy Matching Fallback: If no direct hits found, correct typos quietly in the background
     if matched_results.empty:
         all_titles = df['title'].tolist()
         closest_matches = difflib.get_close_matches(search_query, all_titles, n=1, cutoff=0.5)
         if closest_matches:
             matched_results = df[df['title'] == closest_matches[0]]
-            st.caption(f"⚠️ Title not found exactly. Showing fuzzy matching logic result for: **{closest_matches[0]}**")
     
     if not matched_results.empty:
         matched_row = matched_results.iloc[0]
@@ -273,7 +272,6 @@ if search_query:
                 
                 with st.expander("📚 Engineering Log: Cross-Validation & Generalization Assessment"):
                     st.caption("**Robustness Diagnostics:**")
-                    # FIX: Explicit float string concatenation conversion to bypass fallback display anomalies
                     clean_scores_formatted = ", ".join([f"{round(float(score) * 100, 1)}%" for score in cv_scores])
                     st.write(f"The model's cross-validated scoring consistency holds within individual array blocks of: **[{clean_scores_formatted}]**.")
                     st.write(f"With a dynamic Training Accuracy of {train_accuracy*100:.1f}% vs Test Accuracy of {test_accuracy*100:.1f}%, the system's variance overhead stays tightly managed inside real-time scaling limits.")
